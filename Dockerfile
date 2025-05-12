@@ -2,7 +2,7 @@
 FROM maven:3.9.6-eclipse-temurin-17 as builder
 WORKDIR /build
 COPY JavaWeb3/ /build
-RUN mvn clean package -f pom.xml
+RUN mvn clean package
 
 # Stage 2: Run the app
 FROM openjdk:17
