@@ -29,10 +29,19 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    echo "🚀 Running container from ${DOCKER_IMAGE}"
-                    // Stop any existing container with the same image (optional safety)
-                    sh "docker ps -q --filter ancestor=${DOCKER_IMAGE} | xargs -r docker stop"
-                    sh "docker run -d -p 8080:8080 ${DOCKER_IMAGE}"
+                    echo "🚀 Deploying ${DOCKER_IMAGE} on port 8080"
+
+                    // Stop any container already using port 8080
+                    sh '''
+                        existing=$(docker ps -q --filter "publish=8080")
+                        if [ ! -z "$existing" ]; then
+                          echo "🛑 Stopping container using port 8080: $existing"
+                          docker stop $existing
+                        fi
+                    '''
+
+                    // Run new container with unique name
+                    sh "docker run -d --name java-app-${BUILD_NUMBER} -p 8080:8080 ${DOCKER_IMAGE}"
                 }
             }
         }
@@ -40,8 +49,7 @@ pipeline {
 
     post {
         always {
-            echo "✅ Pipeline finished"
+            echo "✅ Pipeline completed: Build #${BUILD_NUMBER}"
         }
     }
 }
-
