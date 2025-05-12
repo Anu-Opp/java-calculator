@@ -10,20 +10,11 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Source') {
-            steps {
-                script {
-                    echo "📥 Cloning source code from GitHub..."
-                    checkout scm
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "🔨 Building Docker image: ${DOCKER_IMAGE}"
-                    sh "docker build -t ${DOCKER_IMAGE} ."
+                    sh "docker build -t ${DOCKER_IMAGE} JavaWeb3"
                 }
             }
         }
