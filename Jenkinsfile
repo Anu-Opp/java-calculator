@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    options {
+        // Do not skip the default source code checkout
+        // This ensures Jenkins checks out your Git repo once before the pipeline starts
+        // So no need for an explicit `checkout scm`
+    }
+
     environment {
         DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
     }
