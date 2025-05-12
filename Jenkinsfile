@@ -1,14 +1,14 @@
 pipeline {
     agent {
         docker {
-            image 'docker:20.10.16-cli'
+            image 'docker:20.10.16'
             args '-v /var/run/docker.sock:/var/run/docker.sock'
             reuseNode true
         }
     }
 
     options {
-        skipDefaultCheckout()  // ✅ Prevent implicit 'checkout scm'
+        skipDefaultCheckout()
     }
 
     environment {
