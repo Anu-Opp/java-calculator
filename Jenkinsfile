@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    options {
-        skipDefaultCheckout()
-    }
-
     environment {
         DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
     }
@@ -24,7 +20,7 @@ pipeline {
                 script {
                     echo "📤 Pushing Docker image to Docker Hub"
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        sh "docker push ${DOCKER_IMAGE}"
+                        docker.image(DOCKER_IMAGE).push()
                     }
                 }
             }
@@ -34,26 +30,30 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Deploying ${DOCKER_IMAGE} on port 8080"
+                    // Stop existing container on port 8080
                     sh '''
-                        existing=$(docker ps -q --filter "publish=8080")
+                        existing=$(docker ps -q --filter publish=8080)
                         if [ ! -z "$existing" ]; then
-                            echo "🛑 Stopping container using port 8080: $existing"
+                            echo "Stopping existing container on port 8080"
                             docker stop $existing
                         fi
                     '''
-                    sh "docker run -d --name java-app-${BUILD_NUMBER} -p 8080:8080 ${DOCKER_IMAGE}"
+                    // Run new container
+                    sh "docker run -d -p 8080:8080 ${DOCKER_IMAGE}"
                 }
             }
         }
     }
 
     post {
-        always {
-            echo "✅ Pipeline completed: Build #${BUILD_NUMBER}"
+        success {
+            echo "✅ Pipeline completed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed. Check logs above for errors."
+            echo "❌ Pipeline failed. Check the logs for details."
+        }
+        always {
+            echo "📦 Jenkins pipeline finished."
         }
     }
 }
-
