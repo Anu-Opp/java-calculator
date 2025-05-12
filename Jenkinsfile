@@ -1,11 +1,24 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout()
+    }
+
     environment {
         DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
     }
 
     stages {
+        stage('Checkout Source') {
+            steps {
+                script {
+                    echo "📥 Cloning source code from GitHub..."
+                    checkout scm
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
