@@ -38,8 +38,8 @@ pipeline {
                     sh '''
                         existing=$(docker ps -q --filter "publish=8080")
                         if [ ! -z "$existing" ]; then
-                          echo "🛑 Stopping container using port 8080: $existing"
-                          docker stop $existing
+                            echo "🛑 Stopping container using port 8080: $existing"
+                            docker stop $existing
                         fi
                     '''
                     sh "docker run -d --name java-app-${BUILD_NUMBER} -p 8080:8080 ${DOCKER_IMAGE}"
