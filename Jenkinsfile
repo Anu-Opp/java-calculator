@@ -7,6 +7,10 @@ pipeline {
         }
     }
 
+    options {
+        skipDefaultCheckout()  // ✅ Prevent implicit 'checkout scm'
+    }
+
     environment {
         DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
     }
