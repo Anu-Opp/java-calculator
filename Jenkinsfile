@@ -1,8 +1,9 @@
 pipeline {
     agent {
         docker {
-            image 'docker:20.10.16-dind'
+            image 'docker:20.10.16-cli'
             args '-v /var/run/docker.sock:/var/run/docker.sock'
+            reuseNode true
         }
     }
 
@@ -11,6 +12,12 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
