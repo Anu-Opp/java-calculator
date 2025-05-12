@@ -1,12 +1,17 @@
-# Use Tomcat base image with Java 17
-FROM tomcat:9.0-jdk17-temurin
+# Stage 1: Build
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+WORKDIR /build
 
-# Remove default webapp
-RUN rm -rf /usr/local/tomcat/webapps/ROOT
+# Copy JavaWeb3 source (assumes Dockerfile is inside JavaWeb3/)
+COPY . .
 
-# Copy built WAR into Tomcat's deployment directory
-COPY target/WebAppCal-0.0.6.war /usr/local/tomcat/webapps/ROOT.war
+RUN mvn clean package -DskipTests
 
-EXPOSE 8080
-CMD ["catalina.sh", "run"]
+# Stage 2: Run
+FROM openjdk:17
+WORKDIR /app
+
+COPY --from=builder /build/target/*.jar app.jar
+
+CMD ["java", "-jar", "app.jar"]
 
