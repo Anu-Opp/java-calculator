@@ -6,13 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Source') {
-            steps {
-                echo "📥 Cloning source code from GitHub..."
-                checkout scm
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
