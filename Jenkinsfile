@@ -11,6 +11,7 @@ pipeline {
         DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
     }
 
+    stages {
         stage('Build') {
             steps {
                 script {
