@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:20.10.16-dind'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
@@ -10,7 +15,7 @@ pipeline {
             steps {
                 script {
                     echo "🔨 Building Docker image: ${DOCKER_IMAGE}"
-                    docker.build(DOCKER_IMAGE)
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
@@ -19,8 +24,8 @@ pipeline {
             steps {
                 script {
                     echo "📤 Pushing Docker image to Docker Hub"
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        docker.image(DOCKER_IMAGE).push()
+                    withDockerRegistry([url: 'https://index.docker.io/v1/', credentialsId: 'dockerhub']) {
+                        sh "docker push ${DOCKER_IMAGE}"
                     }
                 }
             }
@@ -30,8 +35,6 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Deploying ${DOCKER_IMAGE} on port 8080"
-
-                    // Stop any container already using port 8080
                     sh '''
                         existing=$(docker ps -q --filter "publish=8080")
                         if [ ! -z "$existing" ]; then
@@ -39,8 +42,6 @@ pipeline {
                           docker stop $existing
                         fi
                     '''
-
-                    // Run new container with unique name
                     sh "docker run -d --name java-app-${BUILD_NUMBER} -p 8080:8080 ${DOCKER_IMAGE}"
                 }
             }
@@ -53,3 +54,4 @@ pipeline {
         }
     }
 }
+
