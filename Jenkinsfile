@@ -6,6 +6,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout Source') {
+            steps {
+                echo "📥 Cloning source code from GitHub..."
+                checkout scm
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -20,7 +27,7 @@ pipeline {
                 script {
                     echo "📤 Pushing Docker image to Docker Hub"
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        docker.image(DOCKER_IMAGE).push()
+                        sh "docker push ${DOCKER_IMAGE}"
                     }
                 }
             }
@@ -30,30 +37,26 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Deploying ${DOCKER_IMAGE} on port 8080"
-                    // Stop existing container on port 8080
                     sh '''
-                        existing=$(docker ps -q --filter publish=8080)
+                        existing=$(docker ps -q --filter "publish=8080")
                         if [ ! -z "$existing" ]; then
-                            echo "Stopping existing container on port 8080"
+                            echo "🛑 Stopping container using port 8080: $existing"
                             docker stop $existing
                         fi
                     '''
-                    // Run new container
-                    sh "docker run -d -p 8080:8080 ${DOCKER_IMAGE}"
+                    sh "docker run -d --name java-app-${BUILD_NUMBER} -p 8080:8080 ${DOCKER_IMAGE}"
                 }
             }
         }
     }
 
     post {
-        success {
-            echo "✅ Pipeline completed successfully!"
+        always {
+            echo "📦 Jenkins pipeline finished."
         }
         failure {
             echo "❌ Pipeline failed. Check the logs for details."
         }
-        always {
-            echo "📦 Jenkins pipeline finished."
-        }
     }
 }
+
