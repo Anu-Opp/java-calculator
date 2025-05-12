@@ -1,26 +1,35 @@
 pipeline {
-  agent any
-
-  stages {
-    stage('Build Docker Image') {
-      steps {
-        script {
-          docker.build("anuopp/java-calculator")
-        }
-      }
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = "anuopp/java-calculator:${BUILD_NUMBER}"
     }
-
-    stage('Push to Docker Hub') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          script {
-            docker.withRegistry('', "${DOCKER_USER}:${DOCKER_PASS}") {
-              docker.image("anuopp/java-calculator").push('latest')
+    
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}")
+                }
             }
-          }
         }
-      }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        docker.image("${DOCKER_IMAGE}").push()
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    sh "docker run -d -p 8080:8080 ${DOCKER_IMAGE}"
+                }
+            }
+        }
     }
-  }
 }
-
